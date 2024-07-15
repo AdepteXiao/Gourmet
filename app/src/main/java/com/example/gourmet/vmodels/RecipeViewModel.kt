@@ -45,5 +45,8 @@ class RecipeViewModel(recipeId: Int?) : ViewModel() {
         recipe.image = image
     }
 
+    fun setSelectedType(choice: String) {
+        var type = choice
+    }
 
 }

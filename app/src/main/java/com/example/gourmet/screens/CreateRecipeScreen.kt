@@ -7,28 +7,38 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -41,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -65,10 +76,6 @@ import com.example.gourmet.vmodels.RecipeViewModel
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun CreateRecipeScreen(vm: RecipeViewModel, navHostController: NavHostController) {
-    var isEditing by remember { mutableStateOf(false) }
-    var searchText: String by remember { mutableStateOf("") }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
     Column(
         modifier = Modifier
             .background(Background),
@@ -107,31 +114,6 @@ fun CreateRecipeScreen(vm: RecipeViewModel, navHostController: NavHostController
     }
 }
 
-@Composable
-fun EditableTextField() {
-    var isEditing by remember { mutableStateOf(false) }
-    var text by remember { mutableStateOf("Название") }
-
-    if (isEditing) {
-        TextField(
-            value = text,
-            onValueChange = { newText -> text = newText },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = { isEditing = false }),
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .padding(bottom = 12.dp)
-        )
-    } else {
-        Text(
-            text = text,
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .padding(bottom = 12.dp)
-                .clickable { isEditing = true }
-        )
-    }
-}
 
 @Composable
 fun CreateMainInfo(vm: RecipeViewModel) {
@@ -198,12 +180,17 @@ fun CreateMainInfo(vm: RecipeViewModel) {
                     focusManager.clearFocus()
                     isEditing = false
                 }),
-                colors = TextFieldDefaults.colors(
+                colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = LightAccent,
                     focusedContainerColor = LightAccent,
                     focusedTextColor = TextColor,
                     unfocusedTextColor = TextColor,
                     unfocusedPlaceholderColor = LightText,
+                    focusedLabelColor = Stroke,
+                    unfocusedLabelColor = Stroke,
+                    unfocusedBorderColor = Stroke,
+                    focusedBorderColor = Stroke,
+
                 ),
                 maxLines = 2,
                 modifier = Modifier
@@ -225,12 +212,17 @@ fun CreateMainInfo(vm: RecipeViewModel) {
                     focusManager.clearFocus()
                     isEditing = false
                 }),
-                colors = TextFieldDefaults.colors(
+                colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = LightAccent,
                     focusedContainerColor = LightAccent,
-                    focusedTextColor = LightText,
-                    unfocusedTextColor = LightText,
+                    focusedTextColor = TextColor,
+                    unfocusedTextColor = TextColor,
                     unfocusedPlaceholderColor = LightText,
+                    focusedLabelColor = Stroke,
+                    unfocusedLabelColor = Stroke,
+                    unfocusedBorderColor = Stroke,
+                    focusedBorderColor = Stroke,
+
                 ),
                 maxLines = 2,
                 modifier = Modifier
@@ -241,82 +233,127 @@ fun CreateMainInfo(vm: RecipeViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateIngredient(vm: RecipeViewModel) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     var isEditing by remember { mutableStateOf(false) }
     var editIngName by remember { mutableStateOf("") }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(vertical = 10.dp)
-            .fillMaxWidth(0.9f)
-    ) {
-        TextField(
-            value = editIngName ?: "",
-            onValueChange = { newText ->
-                editIngName = newText
-                isEditing = true
-            },
-            placeholder = { Text(text = "Ингредиент") },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = {
-                vm.recipe.description = editIngName
-                keyboardController?.hide()
-                focusManager.clearFocus()
-                isEditing = false
-            }),
-            colors = TextFieldDefaults.colors(
-                unfocusedContainerColor = LightAccent,
-                focusedContainerColor = LightAccent,
-                focusedTextColor = LightText,
-                unfocusedTextColor = LightText,
-                unfocusedPlaceholderColor = LightText,
-            ),
-            maxLines = 2,
+    var editIngAmount by remember { mutableStateOf("") }
+    Box(modifier = Modifier.fillMaxWidth(0.9f)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .padding(bottom = 12.dp)
-        )
-        Spacer(modifier = Modifier.weight(0.4f))
+                .padding(vertical = 10.dp)
+                .fillMaxWidth()
+        ) {
+            OutlinedTextField(
+                value = editIngName ?: "",
+                onValueChange = { newText ->
+                    editIngName = newText
+                    isEditing = true
+                },
+                label = { Text("Ингредиент") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = {
+//                    vm.recipe.description = editIngName
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                    isEditing = false
+                }),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = LightAccent,
+                    focusedContainerColor = LightAccent,
+                    focusedTextColor = TextColor,
+                    unfocusedTextColor = TextColor,
+                    unfocusedPlaceholderColor = LightText,
+                    focusedLabelColor = Stroke,
+                    unfocusedLabelColor = Stroke,
+                    unfocusedBorderColor = Stroke,
+                    focusedBorderColor = Stroke,
 
-        OutlinedTextField(
-            value = editIngName ?: "",
-            onValueChange = { newText ->
-                editIngName = newText
-                isEditing = true
-            },
-            placeholder = { Text(text = "Ингредиент") },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = {
-                vm.recipe.description = editIngName
-                keyboardController?.hide()
-                focusManager.clearFocus()
-                isEditing = false
-            }),
-            colors = TextFieldDefaults.colors(
-                unfocusedContainerColor = LightAccent,
-                focusedContainerColor = LightAccent,
-                focusedTextColor = TextColor,
-                unfocusedTextColor = TextColor,
-                unfocusedPlaceholderColor = LightText,
-            ),
-            maxLines = 2,
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .padding(bottom = 12.dp)
-        )
-        Spacer(modifier = Modifier.width(5.dp))
-        Text(
-            text = "Кг",
-            color = TextColor,
-            fontSize = 18.sp,
-            lineHeight = 18.sp,
-            modifier = Modifier
-                .padding(end = 15.dp)
-        )
+                ),
+                maxLines = 4,
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+            )
+            Spacer(modifier = Modifier.width(5.dp))
 
+            OutlinedTextField(
+                value = editIngAmount ?: "",
+                onValueChange = { newText ->
+                    editIngAmount = newText
+                    isEditing = true
+                },
+                label = { Text("Кол") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = {
+//                    vm.recipe.ingredients[i].quantity = editIngAmount
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                    isEditing = false
+                }),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = LightAccent,
+                    focusedContainerColor = LightAccent,
+                    focusedTextColor = TextColor,
+                    unfocusedTextColor = TextColor,
+                    unfocusedPlaceholderColor = LightText,
+                    focusedLabelColor = Stroke,
+                    unfocusedLabelColor = Stroke,
+                    unfocusedBorderColor = Stroke,
+                    focusedBorderColor = Stroke,
+                ),
+                maxLines = 3,
+                textStyle = LocalTextStyle.current.copy(lineHeight = 12.sp),
+                modifier = Modifier
+//                    .clip(RoundedCornerShape(20.dp))
+//                    .border(1.dp, Stroke, RoundedCornerShape(20.dp))
+                    .widthIn(min = 40.dp, max = 75.dp)
+
+
+            )
+
+            Spacer(modifier = Modifier.width(5.dp))
+
+            OutlinedTextField(
+                value = editIngAmount ?: "",
+                onValueChange = { newText ->
+                    editIngAmount = newText
+                    isEditing = true
+                },
+                label = { Text("Ед") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = {
+//                    vm.recipe.ingredients[i].quantity = editIngAmount
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                    isEditing = false
+                }),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = LightAccent,
+                    focusedContainerColor = LightAccent,
+                    focusedTextColor = TextColor,
+                    unfocusedTextColor = TextColor,
+                    unfocusedPlaceholderColor = LightText,
+                    focusedLabelColor = Stroke,
+                    unfocusedLabelColor = Stroke,
+                    unfocusedBorderColor = Stroke,
+                    focusedBorderColor = Stroke,
+
+                    ),
+                maxLines = 3,
+                textStyle = LocalTextStyle.current.copy(lineHeight = 12.sp),
+                modifier = Modifier
+//                    .clip(RoundedCornerShape(20.dp))
+//                    .border(1.dp, Stroke, RoundedCornerShape(20.dp))
+                    .widthIn(min = 40.dp, max = 75.dp)
+
+
+            )
+
+        }
     }
 }
 
@@ -354,6 +391,20 @@ fun CreateIngredients(vm: RecipeViewModel) {
 
 @Composable
 fun CreateStepCard(vm: RecipeViewModel) {
+    var imageUri by remember { mutableStateOf<Uri?>(vm.recipe.image) }
+    var isEditing by remember { mutableStateOf(false) }
+    var editStep by remember { mutableStateOf("vm.recipe.name") }
+    var editDescription by remember { mutableStateOf(vm.recipe.description) }
+    val launcher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let {
+                imageUri = it
+                vm.onImageSelected(it)
+            }
+        }
+
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -379,23 +430,63 @@ fun CreateStepCard(vm: RecipeViewModel) {
                 color = Stroke,
                 thickness = 0.5.dp
             )
-            Image(
-                painter = painterResource(R.drawable.food),
-                contentDescription = "Фотография блюда",
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(imageUri)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Фотография шага",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .clickable {
+                        launcher.launch("image/*")
+//                        imageUri = vm.recipe.image
+                    }
+                    .fillMaxWidth(0.9f)
+                    .heightIn(max = 250.dp)
+                    .padding(top = 15.dp),
+                placeholder = ColorPainter(MaterialTheme.colorScheme.primary)
+
+            )
+//            Image(
+//                painter = painterResource(R.drawable.food),
+//                contentDescription = "Фотография блюда",
+//                modifier = Modifier
+//                    .fillMaxWidth(0.9f)
+//                    .heightIn(max = 200.dp),
+//                contentScale = ContentScale.Crop
+//            )
+
+            OutlinedTextField(
+                value = editStep ?: "",
+                onValueChange = { newText ->
+                    editStep = newText
+                    isEditing = true
+                },
+                label = { Text("Описание") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = {
+//                    vm.recipe.description = editStep
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                    isEditing = false
+                }),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = LightAccent,
+                    focusedContainerColor = LightAccent,
+                    focusedTextColor = TextColor,
+                    unfocusedTextColor = TextColor,
+                    unfocusedPlaceholderColor = LightText,
+                    focusedLabelColor = Stroke,
+                    unfocusedLabelColor = Stroke,
+                    unfocusedBorderColor = Stroke,
+                    focusedBorderColor = Stroke,
+
+                    ),
+                maxLines = 6,
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
-                    .heightIn(max = 200.dp),
-                contentScale = ContentScale.Crop
-            )
-
-            Text(
-                text = "Выглядит вкусно, по сути вкусно, по вкусу тоже вкусно",
-                color = TextColor,
-                fontSize = 16.sp,
-                lineHeight = 16.sp,
-                modifier = Modifier
-                    .padding(0.dp, 20.dp)
-                    .fillMaxWidth(0.9f),
+                    .padding(vertical = 20.dp)
             )
         }
     }
@@ -414,4 +505,7 @@ fun CreateSteps(vm: RecipeViewModel) {
         CreateStepCard(vm)
     }
 }
+
+
+
 
