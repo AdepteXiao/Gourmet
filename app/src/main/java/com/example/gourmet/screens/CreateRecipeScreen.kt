@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -79,8 +80,7 @@ fun CreateRecipeScreen(vm: RecipeViewModel, navHostController: NavHostController
     Column(
         modifier = Modifier
             .background(Background),
-
-        ) {
+    ) {
         Box(
             modifier = Modifier
                 .height(50.dp)
@@ -106,6 +106,7 @@ fun CreateRecipeScreen(vm: RecipeViewModel, navHostController: NavHostController
         }
         LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
             item {
+                TagInputField()
                 CreateMainInfo(vm)
                 CreateIngredients(vm)
                 CreateSteps(vm)
@@ -114,6 +115,55 @@ fun CreateRecipeScreen(vm: RecipeViewModel, navHostController: NavHostController
     }
 }
 
+@Composable
+fun TagInputField() {
+    var tagInput by remember { mutableStateOf("") }
+    var tagsList by remember { mutableStateOf(listOf<String>()) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(LightAccent),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(0.9f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = tagInput,
+                    onValueChange = { tagInput = it },
+                    label = { Text("Добавить тег") },
+                    modifier = Modifier.fillMaxWidth(0.85f).padding(bottom = 5.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = LightAccent,
+                        focusedContainerColor = LightAccent,
+                        focusedTextColor = TextColor,
+                        unfocusedTextColor = TextColor,
+                        unfocusedPlaceholderColor = TextColor,
+                        focusedLabelColor = Stroke,
+                        unfocusedLabelColor = Stroke,
+                        unfocusedBorderColor = Stroke,
+                        focusedBorderColor = Stroke,
+
+                        ),
+                )
+                Button(onClick = {
+                    tagsList = tagsList + tagInput
+                    tagInput = ""
+                }) {
+                    Text("+")
+                }
+            }
+            tagsList.forEach { tag ->
+                Text(text = tag, modifier = Modifier.padding(vertical = 4.dp))
+            }
+        }
+    }
+}
 
 @Composable
 fun CreateMainInfo(vm: RecipeViewModel) {
@@ -191,7 +241,7 @@ fun CreateMainInfo(vm: RecipeViewModel) {
                     unfocusedBorderColor = Stroke,
                     focusedBorderColor = Stroke,
 
-                ),
+                    ),
                 maxLines = 2,
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -223,7 +273,7 @@ fun CreateMainInfo(vm: RecipeViewModel) {
                     unfocusedBorderColor = Stroke,
                     focusedBorderColor = Stroke,
 
-                ),
+                    ),
                 maxLines = 2,
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -273,7 +323,7 @@ fun CreateIngredient(vm: RecipeViewModel) {
                     unfocusedBorderColor = Stroke,
                     focusedBorderColor = Stroke,
 
-                ),
+                    ),
                 maxLines = 4,
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
@@ -308,8 +358,6 @@ fun CreateIngredient(vm: RecipeViewModel) {
                 maxLines = 3,
                 textStyle = LocalTextStyle.current.copy(lineHeight = 12.sp),
                 modifier = Modifier
-//                    .clip(RoundedCornerShape(20.dp))
-//                    .border(1.dp, Stroke, RoundedCornerShape(20.dp))
                     .widthIn(min = 40.dp, max = 75.dp)
 
 
@@ -326,7 +374,6 @@ fun CreateIngredient(vm: RecipeViewModel) {
                 label = { Text("Ед") },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = {
-//                    vm.recipe.ingredients[i].quantity = editIngAmount
                     keyboardController?.hide()
                     focusManager.clearFocus()
                     isEditing = false
@@ -346,8 +393,6 @@ fun CreateIngredient(vm: RecipeViewModel) {
                 maxLines = 3,
                 textStyle = LocalTextStyle.current.copy(lineHeight = 12.sp),
                 modifier = Modifier
-//                    .clip(RoundedCornerShape(20.dp))
-//                    .border(1.dp, Stroke, RoundedCornerShape(20.dp))
                     .widthIn(min = 40.dp, max = 75.dp)
 
 
@@ -394,7 +439,6 @@ fun CreateStepCard(vm: RecipeViewModel) {
     var imageUri by remember { mutableStateOf<Uri?>(vm.recipe.image) }
     var isEditing by remember { mutableStateOf(false) }
     var editStep by remember { mutableStateOf("vm.recipe.name") }
-    var editDescription by remember { mutableStateOf(vm.recipe.description) }
     val launcher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let {
@@ -448,15 +492,6 @@ fun CreateStepCard(vm: RecipeViewModel) {
                 placeholder = ColorPainter(MaterialTheme.colorScheme.primary)
 
             )
-//            Image(
-//                painter = painterResource(R.drawable.food),
-//                contentDescription = "Фотография блюда",
-//                modifier = Modifier
-//                    .fillMaxWidth(0.9f)
-//                    .heightIn(max = 200.dp),
-//                contentScale = ContentScale.Crop
-//            )
-
             OutlinedTextField(
                 value = editStep ?: "",
                 onValueChange = { newText ->
