@@ -8,7 +8,3 @@ data class FileUploadResponse(
     val url: String
 )
 
-@Serializable
-data class GetRecipesResponse(
-    val recipes: List<Recipe>
-)

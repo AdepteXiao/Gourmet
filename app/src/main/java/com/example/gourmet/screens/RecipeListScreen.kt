@@ -1,5 +1,7 @@
 package com.example.gourmet.screens
 
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,25 +16,30 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -40,8 +47,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.gourmet.R
+import com.example.gourmet.models.Recipe
 import com.example.gourmet.navigation.Router
 import com.example.gourmet.ui.theme.Additional
 import com.example.gourmet.ui.theme.Background
@@ -50,11 +61,17 @@ import com.example.gourmet.ui.theme.LightAccent
 import com.example.gourmet.ui.theme.LightText
 import com.example.gourmet.ui.theme.Stroke
 import com.example.gourmet.ui.theme.TextColor
+import com.example.gourmet.vmodels.RecipeListViewModel
+import com.example.gourmet.withBaseUrl
 
 @Composable
-fun RecipeListScreen(navController: NavHostController) {
+fun RecipeListScreen(
+    navController: NavHostController,
+    vm: RecipeListViewModel = viewModel { RecipeListViewModel() }
+) {
+    val recipeList by vm.recipeList.collectAsState()
     var isEditing by remember { mutableStateOf(false) }
-    var searchText: String by remember { mutableStateOf("") }
+    var searchText: String by remember { mutableStateOf("")}
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     Column(modifier = Modifier.background(Background)) {
@@ -65,7 +82,8 @@ fun RecipeListScreen(navController: NavHostController) {
                 .background(DarkAccent)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth()) {
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 TextField(
                     value = searchText,
                     onValueChange = { newText ->
@@ -138,18 +156,19 @@ fun RecipeListScreen(navController: NavHostController) {
             }
         }
         LazyColumn {
-            items(10) {
-                RecipeCard(navController)
+            items(recipeList) { recipe ->
+                RecipeCard(navController, recipe)
                 Spacer(modifier = Modifier.height(5.dp))
             }
+
         }
 
     }
 }
 
 @Composable
-fun RecipeCard(navController: NavHostController) {
-    val id: Int = 0
+fun RecipeCard(navController: NavHostController, recipe: Recipe) {
+    val id: String = recipe.id
     Box(
         modifier = Modifier
             .height(150.dp)
@@ -160,28 +179,34 @@ fun RecipeCard(navController: NavHostController) {
 
     ) {
         Row {
-            Image(
-                painter = painterResource(R.drawable.food),
+            if (recipe.image != Uri.EMPTY) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(recipe.image.withBaseUrl())
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "Фотография блюда",
                 modifier = Modifier.fillMaxWidth(0.45f),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                placeholder = ColorPainter(DarkAccent)
             )
+        }
             Column(modifier = Modifier.padding(10.dp, 15.dp)) {
                 Text(
-                    text = "Маринованные огурцы",
+                    text = recipe.name,
                     color = TextColor,
                     fontSize = 18.sp,
                     lineHeight = 18.sp
                 )
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier
                         .padding(vertical = 7.dp)
                         .fillMaxWidth(0.4f),
-                    color = Stroke,
-                    thickness = 0.5.dp
+                    thickness = 0.5.dp,
+                    color = Stroke
                 )
                 Text(
-                    text = "Выглядит вкусно, по сути вкусно, по вкусу тоже вкусно",
+                    text = recipe.description,
                     color = LightText,
                     fontSize = 16.sp,
                     lineHeight = 16.sp,

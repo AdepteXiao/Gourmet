@@ -2,6 +2,7 @@ package com.example.gourmet
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -16,8 +17,9 @@ class App: Application() {
         instance = this
         retrofit = Retrofit.Builder()
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-            .baseUrl("http://cobuy.sytes.net:9090")
+            .baseUrl(BuildConfig.BASE_URL)
             .build()
+        Log.d("App", "Retrofit initialized")
     }
 
     companion object {

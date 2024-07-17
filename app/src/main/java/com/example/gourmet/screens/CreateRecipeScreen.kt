@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -58,10 +59,11 @@ import com.example.gourmet.ui.theme.LightAccent
 import com.example.gourmet.ui.theme.LightText
 import com.example.gourmet.ui.theme.Stroke
 import com.example.gourmet.ui.theme.TextColor
+import com.example.gourmet.vmodels.CreateRecipeViewModel
 import com.example.gourmet.vmodels.RecipeViewModel
 
 @Composable
-fun CreateRecipeScreen(vm: RecipeViewModel, navHostController: NavHostController) {
+fun CreateRecipeScreen(vm: CreateRecipeViewModel, navHostController: NavHostController) {
     val context = LocalContext.current
     Column(
         modifier = Modifier
@@ -82,7 +84,7 @@ fun CreateRecipeScreen(vm: RecipeViewModel, navHostController: NavHostController
                 }) {
                     Icon(
                         painter = painterResource(id = R.drawable.return_arrow_icon),
-                        contentDescription = "Добавить рецепт",
+                        contentDescription = "Вернуться к списку рецептов",
                         modifier = Modifier.padding(10.dp),
                         tint = LightText
                     )
@@ -92,19 +94,22 @@ fun CreateRecipeScreen(vm: RecipeViewModel, navHostController: NavHostController
         }
         LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
             item {
-                TagInputField()
+                TagInputField(vm)
                 CreateMainInfo(vm)
                 CreateIngredients(vm)
                 CreateSteps(vm)
+                Button(onClick = {vm.onSaveRecipe()}){
+                    Text("Сохранить")
+                }
             }
         }
     }
 }
 
 @Composable
-fun TagInputField() {
+fun TagInputField(vm: CreateRecipeViewModel) {
     var tagInput by remember { mutableStateOf("") }
-    var tagsList by remember { mutableStateOf(listOf<String>()) }
+    var tagsList by remember { mutableStateOf(vm.tags) }
 
     Box(
         modifier = Modifier
@@ -140,6 +145,7 @@ fun TagInputField() {
             IconButton(modifier = Modifier.size(50.dp), onClick = {
                 if (tagInput.isNotEmpty())
                     tagsList = tagsList + tagInput
+                    vm.tags = tagsList
                 tagInput = ""
             }) {
                 Icon(
@@ -165,7 +171,7 @@ fun TagInputField() {
 }
 
 @Composable
-fun CreateMainInfo(vm: RecipeViewModel) {
+fun CreateMainInfo(vm: CreateRecipeViewModel) {
     var imageUri by remember { mutableStateOf<Uri?>(vm.recipe.image) }
     var isEditing by remember { mutableStateOf(false) }
     var editName by remember { mutableStateOf(vm.recipe.name) }
@@ -174,7 +180,7 @@ fun CreateMainInfo(vm: RecipeViewModel) {
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let {
                 imageUri = it
-                vm.onImageSelected(it)
+//                vm.onImageSelected(it)
 
             }
         }
@@ -213,14 +219,13 @@ fun CreateMainInfo(vm: RecipeViewModel) {
                     .fillMaxWidth(0.9f)
                     .heightIn(max = 250.dp)
                     .padding(top = 15.dp),
-                placeholder = ColorPainter(MaterialTheme.colorScheme.primary)
+                placeholder = ColorPainter(DarkAccent)
 
             )
             TextField(
-                value = if (isEditing) editName ?: "" else vm.recipe.name ?: "",
+                value = if (editName != "") editName ?: "" else vm.recipe.name ?: "",
                 onValueChange = { newText ->
                     editName = newText
-                    isEditing = true
                 },
                 placeholder = { Text(text = "Название") },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -228,7 +233,6 @@ fun CreateMainInfo(vm: RecipeViewModel) {
                     vm.recipe.name = editName
                     keyboardController?.hide()
                     focusManager.clearFocus()
-                    isEditing = false
                 }),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = LightAccent,
@@ -285,7 +289,7 @@ fun CreateMainInfo(vm: RecipeViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateIngredient(vm: RecipeViewModel) {
+fun CreateIngredient(vm: CreateRecipeViewModel) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     var isEditing by remember { mutableStateOf(false) }
@@ -403,7 +407,7 @@ fun CreateIngredient(vm: RecipeViewModel) {
 }
 
 @Composable
-fun CreateIngredients(vm: RecipeViewModel) {
+fun CreateIngredients(vm: CreateRecipeViewModel) {
     Text(
         text = "Ингредиенты",
         modifier = Modifier
@@ -435,7 +439,7 @@ fun CreateIngredients(vm: RecipeViewModel) {
 
 
 @Composable
-fun CreateStepCard(vm: RecipeViewModel) {
+fun CreateStepCard(vm: CreateRecipeViewModel) {
     var imageUri by remember { mutableStateOf<Uri?>(vm.recipe.image) }
     var isEditing by remember { mutableStateOf(false) }
     var editStep by remember { mutableStateOf("vm.recipe.name") }
@@ -443,7 +447,7 @@ fun CreateStepCard(vm: RecipeViewModel) {
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let {
                 imageUri = it
-                vm.onImageSelected(it)
+//                vm.onImageSelected(it)
             }
         }
 
@@ -528,7 +532,7 @@ fun CreateStepCard(vm: RecipeViewModel) {
 }
 
 @Composable
-fun CreateSteps(vm: RecipeViewModel) {
+fun CreateSteps(vm: CreateRecipeViewModel) {
     Text(
         text = "Приготовление",
         modifier = Modifier

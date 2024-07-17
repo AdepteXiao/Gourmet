@@ -33,7 +33,7 @@ interface Api {
     suspend fun getAllRecipes(
         @Query("sortBy") sortBy: String?,
         @Query("direction") direction: String?
-    ): Response<GetRecipesResponse>
+    ): Response<List<Recipe>>
 
     @GET("api/recipes/{id}")
     suspend fun getRecipeById(@Path("id") id: String): Response<Recipe>
@@ -60,11 +60,11 @@ object ApiClient {
 }
 
 
-class ApiRequester {
+object ApiRequester {
     fun getRecipes(
         sortBy: String? = null,
         direction: String? = null,
-        callback: (GetRecipesResponse?) -> Unit,
+        callback: (List<Recipe>?) -> Unit,
         onError: (Int, ResponseBody?) -> Unit
     ) {
         launchRequest(

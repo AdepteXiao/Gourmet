@@ -30,6 +30,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.gourmet.R
 import com.example.gourmet.ui.theme.Background
 import com.example.gourmet.ui.theme.DarkAccent
@@ -39,11 +41,10 @@ import com.example.gourmet.ui.theme.Stroke
 import com.example.gourmet.ui.theme.TextColor
 
 @Composable
-fun RecipeScreen() {
-    var isEditing by remember { mutableStateOf(false) }
-    var searchText: String by remember { mutableStateOf("") }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
+fun RecipeScreen(navController: NavHostController) {
+    val backStackEntry = navController.currentBackStackEntryAsState()
+    val arguments = backStackEntry.value?.arguments
+    val recipeId = arguments?.getString("recipeId")
     Column(
         modifier = Modifier
             .background(Background),

@@ -10,6 +10,7 @@ import com.example.gourmet.screens.CreateRecipeScreen
 import com.example.gourmet.screens.EditRecipeScreen
 import com.example.gourmet.screens.RecipeScreen
 import com.example.gourmet.screens.RecipeListScreen
+import com.example.gourmet.vmodels.CreateRecipeViewModel
 import com.example.gourmet.vmodels.RecipeViewModel
 
 @Composable
@@ -22,14 +23,15 @@ fun NavGraph(
             RecipeListScreen(navHostController)
         }
         composable(Router.Recipe+ "/{recipeId}"){
-            RecipeScreen()
+            val vm: RecipeViewModel = viewModel(key = Router.EditRecipe) { RecipeViewModel(it.arguments?.getString("recipeId") ?: "")}
+            RecipeScreen(navHostController)
         }
         composable(Router.EditRecipe + "/{recipeId}"){
-            val vm: RecipeViewModel = viewModel(key = Router.EditRecipe) { RecipeViewModel(it.arguments?.getInt("recipeId"))}
+            val vm: RecipeViewModel = viewModel(key = Router.EditRecipe) { RecipeViewModel(it.arguments?.getString("recipeId") ?: "")}
             EditRecipeScreen()
         }
         composable(Router.CreateRecipe) {
-            val vm: RecipeViewModel = viewModel(key = Router.CreateRecipe) { RecipeViewModel(null)}
+            val vm: CreateRecipeViewModel = viewModel(key = Router.CreateRecipe) { CreateRecipeViewModel()}
             CreateRecipeScreen(vm, navHostController)
         }
     }

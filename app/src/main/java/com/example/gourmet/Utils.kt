@@ -41,7 +41,6 @@ fun prepareBitmapToRequest(bitmap: Bitmap, fileName: String): MultipartBody.Part
     return MultipartBody.Part.createFormData("image", fileName, reqFile)
 }
 
-@RequiresApi(Build.VERSION_CODES.P)
 fun Context.getMultipartImageFromUri(uri: Uri): MultipartBody.Part? {
     val bitmap = this.getBitmapFromUri(uri)
     bitmap?.let {
@@ -50,11 +49,16 @@ fun Context.getMultipartImageFromUri(uri: Uri): MultipartBody.Part? {
     return null
 }
 
-@RequiresApi(Build.VERSION_CODES.P)
 fun Context.getBitmapFromUri(uri: Uri): Bitmap? {
     return try {
         ImageDecoder.decodeBitmap(ImageDecoder.createSource(this.contentResolver, uri))
     } catch (e: Exception) {
         null
     }
+}
+
+fun Uri.withBaseUrl(): Uri {
+    val baseUrl = BuildConfig.BASE_URL
+    val uriString = this.toString().substring(1)
+    return Uri.parse(baseUrl + uriString)
 }
